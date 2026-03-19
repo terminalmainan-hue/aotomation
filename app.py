@@ -78,24 +78,31 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
             clip_res = clip.with_effects([vfx.Resize(height=720)])
             clip_res.write_videofile(res_p, codec="libx264", audio=False)
 
-            # B. GEMINI ANALYSIS
-            st.write("🧠 Gemini Analysis...")
+            # --- 2. GEMINI ANALYSIS (Sinkronisasi Durasi) ---
+            st.write("🧠 Menganalisis Video & Membuat Naskah Pas...")
             v_upload = g_client.files.upload(file=res_p)
             while v_upload.state.name == "PROCESSING":
                 time.sleep(2)
                 v_upload = g_client.files.get(name=v_upload.name)
             
-            # Hitung limit kata (3 detik jeda awal)
-            target_dur = max(dur - 3.5, 1)
+            # LOGIKA DURASI:
+            # Kita beri jeda 3 detik di awal video agar visual terlihat dulu.
+            # Sisa waktu bicara = total durasi - 3 detik.
+            target_dur = max(dur - 3.0, 1.0)
+            
+            # BATAS KATA: Rata-rata 2.1 kata per detik (Kecepatan Normal-Energik)
+            # Contoh: Video 10 detik -> Sisa 7 detik -> Maks 14-15 kata.
             word_limit = int(target_dur * 2.1)
 
             prompt_text = f"""
-            Buat naskah {goal} {lang}, gaya {style}.
-            DURASI: Harus habis dibaca dalam {target_dur:.1f} detik.
-            LIMIT: Maksimal {word_limit} kata.
-            CTA: {extra_cmd}
+            Buat naskah {goal} {lang} dengan gaya {style}.
             
-            PENTING: Berikan teks naskah saja. JANGAN tulis 'Narasi:', 'Naskah:', atau durasi waktu.
+            INSTRUKSI KETAT:
+            1. Narasi HARUS selesai dibaca dalam {target_dur:.1f} detik.
+            2. Gunakan MAKSIMAL {word_limit} kata saja.
+            3. JANGAN tulis label 'Narasi:', 'Naskah:', atau durasi waktu (00:00).
+            4. LANGSUNG mulai pada kata pertama naskah.
+            5. CTA: {extra_cmd}
             """
             
             response = g_client.models.generate_content(
@@ -106,24 +113,32 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
                 ])]
             )
             
-            # Bersihkan teks naskah dari label sampah
+            # Pembersihan Teks dari label sampah agar tidak dibaca Voiceover
             narasi = re.sub(r'Narasi:|Naskah:|Script:|\d{2}:\d{2}', '', response.text).strip()
             st.info(f"Naskah ({len(narasi.split())} kata): {narasi}")
 
-            # C. VOICE GENERATION
+            # --- 3. VOICE GENERATION ---
             st.write("🎙️ Membuat Voiceover...")
             asyncio.run(generate_voice(narasi, aud_p, v_name))
 
-            # D. MERGING (Solusi Error Durasi)
+            # --- 4. MERGING (Kunci Durasi & Jeda) ---
             if os.path.exists(aud_p):
                 st.write("🎬 Menggabungkan Video & Audio...")
-                a_clip = AudioFileClip(aud_p).with_start(3.0) # Jeda cinematic
+                a_clip = AudioFileClip(aud_p)
+                
+                # Suara baru masuk di detik ke-3.0
+                a_clip = a_clip.with_start(3.0)
                 
                 try:
-                    # Gabungkan audio dan paksa durasi mengikuti video asli
-                    final = clip_res.with_audio(a_clip).with_duration(dur)
+                    # Gabungkan audio dan video
+                    final = clip_res.with_audio(a_clip)
+                    
+                    # PENTING: Paksa durasi final sama dengan video asli (dur)
+                    # Ini mencegah error "Accessing time t > duration"
+                    final = final.with_duration(dur)
+                    
                     final.write_videofile(out_p, codec="libx264", audio_codec="aac")
-                    status.update(label="✅ Selesai!", state="complete")
+                    status.update(label="✅ Berhasil!", state="complete")
                 except Exception as e:
                     st.error(f"Gagal saat penggabungan: {e}")
                     st.stop()
