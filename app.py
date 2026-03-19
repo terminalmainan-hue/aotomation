@@ -38,9 +38,6 @@ def process_video(uploaded_file, lang, voice_type, style, goal, extra_cmd):
         # Save temp file
         with open("input.mp4", "wb") as f:
             f.write(uploaded_file.read())
-            
-        duration = clip.duration
-        clip.write_videofile("resized.mp4", codec="libx264", audio=False
 
 # --- BAGIAN 2: PENGATURAN KONTEN ---
 st.subheader("2. Menu Pengaturan Konten")
