@@ -92,18 +92,11 @@ if create_btn and uploaded_file:
         audio_clip = AudioFileClip("vo.mp3")
         audio_final = CompositeAudioClip([audio_clip.set_start(0)]).set_duration(durasi_video)
 
-        # 4. Final Render (Mengunci FPS dan Ukuran Asli)
-        final_video = video_clip.set_audio(audio_final)
-        output_name = "final_output.mp4"
-        
-        final_video.write_videofile(
-            output_name, 
-            codec="libx264", 
-            audio_codec="aac", 
-            fps=video_clip.fps, 
-            preset="ultrafast",
-            threads=4
-        )
+        # 4. Render
+                v_clip = VideoFileClip("input_video.mp4")
+                a_clip = AudioFileClip("temp_vo.mp3")
+                final = v_clip.set_audio(a_clip.subclip(0, v_clip.duration) if a_clip.duration > v_clip.duration else a_clip)
+                final.write_videofile("output.mp4", codec="libx264", audio_codec="aac")
         
         status.update(label="✅ Selesai!", state="complete")
 
