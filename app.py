@@ -74,7 +74,7 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
             CTA: {extra_cmd}
             """
             
-            v_upload = g_client.files.upload(path=res_p)
+            v_upload = g_client.files.upload(file=res_p)
             while v_upload.state.name == "PROCESSING":
                 time.sleep(2)
                 v_upload = g_client.files.get(name=v_upload.name)
