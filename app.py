@@ -29,7 +29,6 @@ if uploaded_file:
     with open(video_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
 
-def process_video(uploaded_file, lang, voice_type, style, goal, extra_cmd):
     # Simpan file sementara
     with open("input_raw.mp4", "wb") as f:
         f.write(uploaded_file.read())
