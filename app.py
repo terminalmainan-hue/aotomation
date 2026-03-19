@@ -96,7 +96,7 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
                     final = clip_res.with_audio(a_clip).with_duration(dur).subclipped(0, dur)
                     final.write_videofile(out_p, codec="libx264", audio_codec="aac", fps=24, 
     temp_audiofile='temp-audio.m4a', # Menentukan nama file audio sementara
-    remove_temp=True # Otomatis hapus setelah selesai
+    remove_temp=True # Otomatis hapus setelah selesai)
                     status.update(label="✅ Berhasil!", state="complete")
                 except Exception as e:
                     st.error(f"Gagal Merging: {e}")
