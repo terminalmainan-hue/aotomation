@@ -48,7 +48,7 @@ with col1:
     gaya = st.selectbox("Gaya Bicara:", ["Energetik/Semangat", "Ceria/Friendly", "Dramatis", "Deep/Filosofis", "Formal/Profesional", "Santai/Conversational", "Otoriter/Tegas", "Persuasif (Sales)", "Misterius/Suspense", "Sarkas/Lucu"])
 
 with col2:
-    bahasa = st.selectbox("Pilih Bahasa:", ["Bahasa Indonesia", "Bahasa Sunda", "Bahasa Jawa", "Bahasa Inggris"])
+    bahasa = st.selectbox("Pilih Bahasa:", ["Bahasa Indonesia", "Bahasa Inggris"])
     kategori = st.selectbox("Tujuan Video:", ["Review Produk (Detail)", "Fakta Unik", "Soft Sell (Showcase)", "Hard Sell (Persuasif)", "Cinematic Showcase", "Storytelling/Bercerita", "Stand Up Comedy/Parodi", "Motivasi & Inspirasi", "Menjawab Pertanyaan (Q&A)", "Opini atau Reaksi (Reaction)", "Klarifikasi", "Ucapan Terima Kasih (Appreciation)", "Hunting/Daily Vlog"])
 
 with col3:
