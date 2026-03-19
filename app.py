@@ -39,16 +39,6 @@ def process_video(uploaded_file, lang, voice_type, style, goal, extra_cmd):
         with open("input.mp4", "wb") as f:
             f.write(uploaded_file.read())
             
-        # 1. Resize (MoviePy v2 style)
-        st.write("🔧 Resizing...")
-        clip = VideoFileClip("input.mp4")
-        # Jika versi 2.x gunakan ini:
-        try:
-            clip = clip.with_effects([vfx.Resize(height=720)])
-        except:
-            # Fallback jika ternyata yang terinstal v1.x
-            clip = clip.resize(height=720)
-            
         duration = clip.duration
         clip.write_videofile("resized.mp4", codec="libx264", audio=False
 
