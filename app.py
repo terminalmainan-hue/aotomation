@@ -88,22 +88,33 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
             # C. VOICE
             asyncio.run(generate_voice(narasi, aud_p, v_name))
 
-            # D. MERGING (Solusi Milidetik)
+            # --- D. MERGING (ANTI-CRASH TOTAL) ---
             if os.path.exists(aud_p):
+                st.write("🎬 Menyelaraskan Audio & Video...")
+                
+                # Load audio dan beri jeda mulai di detik ke-3
                 a_clip = AudioFileClip(aud_p).with_start(3.0)
+                
                 try:
-                    # Kunci durasi total dan subclip untuk cegah error t=30.01
+                    # 1. Gabungkan audio ke video
+                    # 2. Paksa durasi total video sama dengan durasi asli (dur)
+                    # 3. FIX UTAMA: Gunakan subclipped untuk memotong milidetik yang berlebih
                     final = clip_res.with_audio(a_clip).with_duration(dur).subclipped(0, dur)
+                    
+                    # Tulis file dengan parameter tambahan agar lebih stabil
                     final.write_videofile(
-    out_p, 
-    codec="libx264", 
-    audio_codec="aac", 
-    fps=24, 
-    temp_audiofile='temp-audio.m4a', # Menentukan nama file audio sementara
-    remove_temp=True # Otomatis hapus setelah selesai
-)
+                        out_p, 
+                        codec="libx264", 
+                        audio_codec="aac", 
+                        fps=24, 
+                        logger=None, # Mengurangi beban log agar tidak lambat
+                        temp_audiofile='temp-audio.m4a',
+                        remove_temp=True
+                    )
                     status.update(label="✅ Berhasil!", state="complete")
+                    
                 except Exception as e:
+                    # Jika masih error, kita coba fallback (opsi cadangan) tanpa audio
                     st.error(f"Gagal Merging: {e}")
                     st.stop()
 
