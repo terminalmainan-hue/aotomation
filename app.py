@@ -106,7 +106,7 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
             """
             
             response = g_client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3-flash-preview",
                 contents=[types.Content(role="user", parts=[
                     types.Part.from_uri(file_uri=v_upload.uri, mime_type=v_upload.mime_type),
                     types.Part.from_text(text=prompt_text)
