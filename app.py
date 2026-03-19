@@ -19,6 +19,15 @@ async def generate_voice(text, voice_name, output_path):
 
 st.set_page_config(page_title="AI Video Automator", layout="wide")
 
+# --- BAGIAN 1: INPUT VIDEO ---
+st.subheader("1. Input Video")
+uploaded_file = st.file_uploader("Pilih file video", type=['mp4', 'mov', 'avi'])
+video_path = "temp_video.mp4"
+
+if uploaded_file:
+    with open(video_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
 def process_video(uploaded_file, lang, voice_type, style, goal, extra_cmd):
     # Simpan file sementara
     with open("input_raw.mp4", "wb") as f:
