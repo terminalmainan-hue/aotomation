@@ -17,33 +17,19 @@ async def generate_voice(text, voice_name, output_path):
     communicate = edge_tts.Communicate(text, voice_name, rate="+0%")
     await communicate.save(output_path)
 
-st.set_page_config(page_title="Zar's Video Automator Pro", layout="wide")
-st.title("🎬 Zar's Video Automator Pro")
-st.markdown("Automasi Video dengan Fitur **Auto-Rotation Fix**")
+st.set_page_config(page_title="AI Video Automator", layout="wide")
 
-# --- BAGIAN 1: INPUT VIDEO ---
-st.subheader("1. Input Video")
-uploaded_file = st.file_uploader("Pilih file video", type=['mp4', 'mov', 'avi'])
-video_path = "temp_video.mp4"
-
-if uploaded_file:
-    with open(video_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+def process_video(uploaded_file, lang, voice_type, style, goal, extra_cmd):
+    # Simpan file sementara
+    with open("input_raw.mp4", "wb") as f:
+        f.write(uploaded_file.read())
     
-    # --- DETEKSI ROTASI & RESOLUSI ---
-    temp_clip = VideoFileClip(video_path)
-    
-    # Perbaikan Metadata Rotasi (PENTING untuk Portrait HP)
-    if temp_clip.rotation == 90 or temp_clip.rotation == 270:
-        lebar, tinggi = temp_clip.h, temp_clip.w
-        tipe_video = "Portrait (Tegak)"
-    else:
-        lebar, tinggi = temp_clip.size
-        tipe_video = "Portrait (Tegak)" if tinggi > lebar else "Landscape (Mendatar)"
-    
-    st.info(f"📹 Video terdeteksi: **{tipe_video}** | Resolusi: {lebar}x{tinggi} | FPS: {temp_clip.fps}")
-    st.video(uploaded_file)
-    temp_clip.close()
+    with st.status("Sedang memproses video...", expanded=True) as status:
+        # 1. Resize ke 720p (Agar ringan)
+        st.write("🔧 Meresize video ke 720p...")
+        clip = mp.VideoFileClip("input_raw.mp4").resize(height=720)
+        duration = clip.duration
+        clip.write_videofile("processed_720.mp4", codec="libx264")
 
 # --- BAGIAN 2: PENGATURAN KONTEN ---
 st.subheader("2. Menu Pengaturan Konten")
