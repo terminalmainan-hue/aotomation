@@ -18,6 +18,7 @@ async def generate_voice(text, voice_name, output_path):
     await communicate.save(output_path)
 
 st.set_page_config(page_title="AI Video Automator", layout="wide")
+st.title("🎬 Zar's Video Automator Pro")
 
 # --- BAGIAN 1: INPUT VIDEO ---
 st.subheader("1. Input Video")
@@ -64,11 +65,6 @@ instruksi_user = st.text_area("✍️ Instruksi Tambahan (Opsional):", placehold
 if create_btn and uploaded_file:
     # Load Video dengan orientasi yang benar
     video_clip = VideoFileClip(video_path)
-    
-    # FIX: Paksa orientasi jika metadata rotasi ada
-    if video_clip.rotation == 90 or video_clip.rotation == 270:
-        video_clip = video_clip.resize(video_clip.size[::-1])
-        video_clip.rotation = 0
 
     durasi_video = video_clip.duration
 
