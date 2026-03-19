@@ -88,14 +88,22 @@ if create_btn and uploaded_file:
         asyncio.run(generate_voice(naskah_clean, voice_map[voice_opt], "vo.mp3"))
 
         # 3. Audio Mixing & Lock Duration
-        st.write("Menggabungkan video dan audio...")
-                    v_clip = VideoFileClip("input_video.mp4")
-                    a_clip = AudioFileClip("temp_vo.mp3")
-                    final_audio = a_clip.subclip(0, v_clip.duration) if a_clip.duration > v_clip.duration else a_clip
-                    final_video = v_clip.set_audio(final_audio)
-                    
-                    output_name = f"hasil_{platform.lower()}.mp4"
-                    final_video.write_videofile(output_name, codec="libx264", audio_codec="aac")
+        st.write("🎬 Merender video (Menjaga Resolusi)...")
+        audio_clip = AudioFileClip("vo.mp3")
+        audio_final = CompositeAudioClip([audio_clip.set_start(0)]).set_duration(durasi_video)
+
+        # 4. Final Render (Mengunci FPS dan Ukuran Asli)
+        final_video = video_clip.set_audio(audio_final)
+        output_name = "final_output.mp4"
+        
+        final_video.write_videofile(
+            output_name, 
+            codec="libx264", 
+            audio_codec="aac", 
+            fps=video_clip.fps, 
+            preset="ultrafast",
+            threads=4
+        )
         
         status.update(label="✅ Selesai!", state="complete")
 
