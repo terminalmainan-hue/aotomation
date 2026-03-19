@@ -78,42 +78,42 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
             clip_res = clip.with_effects([vfx.Resize(height=720)])
             clip_res.write_videofile(res_p, codec="libx264", audio=False)
 
-            # --- 2. GEMINI ANALYSIS (Sinkronisasi Durasi) ---
-            st.write("🧠 Menganalisis Video & Membuat Naskah Pas...")
+            # --- 2. GEMINI ANALYSIS (Sinkronisasi dengan Akhir yang Longgar) ---
+            st.write("🧠 Menganalisis Video & Mengatur Durasi Suara...")
             v_upload = g_client.files.upload(file=res_p)
             while v_upload.state.name == "PROCESSING":
                 time.sleep(2)
                 v_upload = g_client.files.get(name=v_upload.name)
             
-            # LOGIKA DURASI:
-            # Kita beri jeda 3 detik di awal video agar visual terlihat dulu.
-            # Sisa waktu bicara = total durasi - 3 detik.
-            target_dur = max(dur - 3.0, 1.0)
+            # LOGIKA DURASI AMAN:
+            # Jeda 3 detik di awal + Jeda 3 detik di akhir.
+            # Jadi suara hanya boleh mengisi (durasi total - 6 detik).
+            safe_padding = 6.0 
+            target_dur = max(dur - safe_padding, 1.0)
             
-            # BATAS KATA: Rata-rata 2.1 kata per detik (Kecepatan Normal-Energik)
-            # Contoh: Video 10 detik -> Sisa 7 detik -> Maks 14-15 kata.
-            word_limit = int(target_dur * 2.1)
+            # Batas kata diperketat (rata-rata 2 kata per detik)
+            word_limit = int(target_dur * 2.0)
 
             prompt_text = f"""
             Buat naskah {goal} {lang} dengan gaya {style}.
             
-            INSTRUKSI KETAT:
-            1. Narasi HARUS selesai dibaca dalam {target_dur:.1f} detik.
-            2. Gunakan MAKSIMAL {word_limit} kata saja.
-            3. JANGAN tulis label 'Narasi:', 'Naskah:', atau durasi waktu (00:00).
+            INSTRUKSI SANGAT KETAT:
+            1. Narasi HARUS SANGAT SINGKAT. Maksimal {word_limit} kata.
+            2. Tujuan: Suara harus sudah berhenti TOTAL {safe_padding/2} detik sebelum video selesai.
+            3. JANGAN tulis label 'Narasi:', 'Naskah:', atau durasi waktu.
             4. LANGSUNG mulai pada kata pertama naskah.
-            5. CTA: {extra_cmd}
+            5. Tambahkan CTA singkat: {extra_cmd}
             """
             
             response = g_client.models.generate_content(
-                model="gemini-3-flash-preview",
+                model="gemini-2.0-flash",
                 contents=[types.Content(role="user", parts=[
                     types.Part.from_uri(file_uri=v_upload.uri, mime_type=v_upload.mime_type),
                     types.Part.from_text(text=prompt_text)
                 ])]
             )
             
-            # Pembersihan Teks dari label sampah agar tidak dibaca Voiceover
+            # Pembersihan Teks
             narasi = re.sub(r'Narasi:|Naskah:|Script:|\d{2}:\d{2}', '', response.text).strip()
             st.info(f"Naskah ({len(narasi.split())} kata): {narasi}")
 
@@ -121,20 +121,20 @@ if uploaded_file and st.button("🚀 Mulai Proses"):
             st.write("🎙️ Membuat Voiceover...")
             asyncio.run(generate_voice(narasi, aud_p, v_name))
 
-            # --- 4. MERGING (Kunci Durasi & Jeda) ---
+            # --- 4. MERGING (Kunci Durasi & Jeda Akhir) ---
             if os.path.exists(aud_p):
                 st.write("🎬 Menggabungkan Video & Audio...")
                 a_clip = AudioFileClip(aud_p)
                 
-                # Suara baru masuk di detik ke-3.0
+                # Suara mulai di detik ke-3
                 a_clip = a_clip.with_start(3.0)
                 
                 try:
                     # Gabungkan audio dan video
                     final = clip_res.with_audio(a_clip)
                     
-                    # PENTING: Paksa durasi final sama dengan video asli (dur)
-                    # Ini mencegah error "Accessing time t > duration"
+                    # PAKSA durasi video tetap sama dengan durasi asli (dur)
+                    # Ini akan secara otomatis memotong audio jika Gemini "ngeyel" bicara kepanjangan
                     final = final.with_duration(dur)
                     
                     final.write_videofile(out_p, codec="libx264", audio_codec="aac")
